@@ -12,10 +12,10 @@ const app = express();
 // Express Config:
 const corsOptions = {
 	origin: [
-		'http://127.0.0.1:8080',
-		'http://localhost:8080',
-		'http://127.0.0.1:5173',
-		'http://localhost:5173',
+		'http://127.0.0.1:3030',
+		'http://localhost:3030',
+		'http://127.0.0.1:5174',
+		'http://localhost:5174',
 	],
 	credentials: true,
 };
@@ -32,9 +32,9 @@ app.set('query parser', 'extended');
 app.get('/api/toy', (req, res) => {
 	const filterBy = {
 		txt: req.query.txt || '',
-		minSpeed: +req.query.minSpeed || 0,
 		maxPrice: +req.query.maxPrice || 0,
-		pageIdx: req.query.pageIdx || undefined,
+		inStock: req.body.maxPrice || 'All',
+		//pageIdx: req.query.pageIdx || undefined,
 	};
 	toyService
 		.query(filterBy)
@@ -62,9 +62,9 @@ app.post('/api/toy', (req, res) => {
 	if (!loggedinUser) return res.status(401).send('Cannot add toy');
 
 	const toy = {
-		vendor: req.body.vendor,
+		name: req.body.name,
 		price: +req.body.price,
-		speed: +req.body.speed,
+		labels: req.body.labels,
 	};
 	toyService
 		.save(toy, loggedinUser)
@@ -81,9 +81,9 @@ app.put('/api/toy/:id', (req, res) => {
 
 	const toy = {
 		_id: req.params.id,
-		vendor: req.body.vendor,
+		name: req.body.name,
 		price: +req.body.price,
-		speed: +req.body.speed,
+		labels: req.body.labels,
 	};
 	toyService
 		.save(toy, loggedinUser)

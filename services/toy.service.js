@@ -12,20 +12,28 @@ export const toyService = {
 const PAGE_SIZE = 5;
 const toys = utilService.readJsonFile('data/toy.json');
 
-function query(filterBy = { txt: '' }) {
+function query(filterBy = { txt: '', maxPrice: '', inStock: 'All', sort: '' }) {
 	const regex = new RegExp(filterBy.txt, 'i');
-	var toysToReturn = toys.filter((toy) => regex.test(toy.vendor));
+	var toysToReturn = toys.filter((toy) => regex.test(toy.name));
 
-	if (filterBy.minSpeed) {
-		toysToReturn = toysToReturn.filter((toy) => toy.speed >= filterBy.minSpeed);
-	}
 	if (filterBy.maxPrice) {
-		toysToReturn = toysToReturn.filter((toy) => toy.price <= filterBy.maxPrice);
+		toys = toys.filter((toy) => toy.price <= filterBy.maxPrice);
 	}
 
-	if (filterBy.pageIdx !== undefined) {
-		const startIdx = filterBy.pageIdx * PAGE_SIZE;
-		toysToReturn = toysToReturn.slice(startIdx, startIdx + PAGE_SIZE);
+	if (filterBy.inStock && filterBy.inStock !== 'All') {
+		toys = toys.filter((toy) =>
+			filterBy.inStock === 'In stock' ? toy.inStock : !toy.inStock
+		);
+	}
+
+	if (filterBy.sort) {
+		if (filterBy.sort === 'name') {
+			toys = toys.sort((a, b) => a.name.localeCompare(b.name));
+		} else if (filterBy.sort === 'createdAt') {
+			toys = toys.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+		} else if (filterBy.sort === 'price') {
+			toys = toys.sort((a, b) => a.price - b.price);
+		}
 	}
 	return Promise.resolve(toysToReturn);
 }
@@ -53,8 +61,8 @@ function save(toy, loggedinUser) {
 		if (!loggedinUser.isAdmin && toyToUpdate.owner._id !== loggedinUser._id) {
 			return Promise.reject('Not your toy');
 		}
-		toyToUpdate.vendor = toy.vendor;
-		toyToUpdate.speed = toy.speed;
+		toyToUpdate.name = toy.name;
+
 		toyToUpdate.price = toy.price;
 		toy = toyToUpdate;
 	} else {
