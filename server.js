@@ -30,12 +30,15 @@ app.set('query parser', 'extended');
 
 // REST API for Toys
 app.get('/api/toy', (req, res) => {
+	console.log(req);
 	const filterBy = {
 		txt: req.query.txt || '',
 		maxPrice: +req.query.maxPrice || 0,
-		inStock: req.body.maxPrice || 'All',
+		inStock: req.query.inStock || 'All',
 		//pageIdx: req.query.pageIdx || undefined,
 	};
+	console.log('filterBy:', filterBy);
+
 	toyService
 		.query(filterBy)
 		.then((toys) => res.send(toys))
@@ -59,7 +62,7 @@ app.get('/api/toy/:toyId', (req, res) => {
 
 app.post('/api/toy', (req, res) => {
 	const loggedinUser = userService.validateToken(req.cookies.loginToken);
-	if (!loggedinUser) return res.status(401).send('Cannot add toy');
+	//if (!loggedinUser) return res.status(401).send('Cannot add toy');
 
 	const toy = {
 		name: req.body.name,
@@ -77,13 +80,14 @@ app.post('/api/toy', (req, res) => {
 
 app.put('/api/toy/:id', (req, res) => {
 	const loggedinUser = userService.validateToken(req.cookies.loginToken);
-	if (!loggedinUser) return res.status(401).send('Cannot update toy');
+	//if (!loggedinUser) return res.status(401).send('Cannot update toy');
 
 	const toy = {
 		_id: req.params.id,
-		name: req.body.name,
-		price: +req.body.price,
-		labels: req.body.labels,
+		name: req.body.name || '',
+		price: +req.body.price || 0,
+		inStock: req.body.inStock || true,
+		labels: Array.isArray(req.body.labels) ? req.body.labels : [],
 	};
 	toyService
 		.save(toy, loggedinUser)
@@ -96,7 +100,7 @@ app.put('/api/toy/:id', (req, res) => {
 
 app.delete('/api/toy/:toyId', (req, res) => {
 	const loggedinUser = userService.validateToken(req.cookies.loginToken);
-	if (!loggedinUser) return res.status(401).send('Cannot remove toy');
+	//if (!loggedinUser) return res.status(401).send('Cannot remove toy');
 
 	const { toyId } = req.params;
 	toyService

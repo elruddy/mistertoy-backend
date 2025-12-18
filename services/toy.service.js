@@ -17,11 +17,11 @@ function query(filterBy = { txt: '', maxPrice: '', inStock: 'All', sort: '' }) {
 	var toysToReturn = toys.filter((toy) => regex.test(toy.name));
 
 	if (filterBy.maxPrice) {
-		toys = toys.filter((toy) => toy.price <= filterBy.maxPrice);
+		toysToReturn = toys.filter((toy) => toy.price <= filterBy.maxPrice);
 	}
 
 	if (filterBy.inStock && filterBy.inStock !== 'All') {
-		toys = toys.filter((toy) =>
+		toysToReturn = toys.filter((toy) =>
 			filterBy.inStock === 'In stock' ? toy.inStock : !toy.inStock
 		);
 	}
@@ -48,9 +48,9 @@ function remove(toyId, loggedinUser) {
 	if (idx === -1) return Promise.reject('No Such Toy');
 
 	const toy = toys[idx];
-	if (!loggedinUser.isAdmin && toy.owner._id !== loggedinUser._id) {
-		return Promise.reject('Not your toy');
-	}
+	// if (!loggedinUser.isAdmin && toy.owner._id !== loggedinUser._id) {
+	// 	return Promise.reject('Not your toy');
+	// }
 	toys.splice(idx, 1);
 	return _saveToysToFile();
 }
@@ -58,19 +58,24 @@ function remove(toyId, loggedinUser) {
 function save(toy, loggedinUser) {
 	if (toy._id) {
 		const toyToUpdate = toys.find((currToy) => currToy._id === toy._id);
-		if (!loggedinUser.isAdmin && toyToUpdate.owner._id !== loggedinUser._id) {
-			return Promise.reject('Not your toy');
-		}
-		toyToUpdate.name = toy.name;
+		console.log(toyToUpdate);
+		if (!toyToUpdate) return Promise.reject('Toy not found');
 
+		// if (!loggedinUser.isAdmin && toyToUpdate.owner._id !== loggedinUser._id) {
+		// 	return Promise.reject('Not your toy');
+		// }
+		toyToUpdate.name = toy.name;
+		toyToUpdate.labels = toy.labels;
 		toyToUpdate.price = toy.price;
+		toyToUpdate.inStock = toy.inStock;
 		toy = toyToUpdate;
+		console.log('toy to save ', toy);
 	} else {
 		toy._id = utilService.makeId();
 		toy.owner = loggedinUser;
 		toys.push(toy);
 	}
-	delete toy.owner.score;
+	//delete toy.owner.score;
 	return _saveToysToFile().then(() => toy);
 }
 
